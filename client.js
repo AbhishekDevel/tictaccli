@@ -35,12 +35,12 @@ socket.on("choose-from-existing-game-for-spectator", function (data) {
 socket.on("player1-move", function (data) {
     drawBoard(data[3]);
     var chooseNumber = parseInt(prmt("Choose Your Move"));
-    socket.emit("player1-move-index", [data[0], data[1], data[3], chooseNumber]);
+    socket.emit("player1-move-index", [data[0], data[1], data[2], chooseNumber]);
 });
 socket.on("player2-move", function (data) {
     drawBoard(data[3]);
     var chooseNumber = parseInt(prmt("Choose Your Move"));
-    socket.emit("player2-move-index", [data[0], data[1], data[0], chooseNumber]);
+    socket.emit("player2-move-index", [data[0], data[1], data[2], chooseNumber]);
 });
 socket.on("player2-connect", function (data) {
     console.log(data);

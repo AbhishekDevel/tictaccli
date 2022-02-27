@@ -39,16 +39,16 @@ socket.on("choose-from-existing-game-for-spectator", (data: number[]) => {
   socket.emit("gameid-for-spectator", chooseNumber)
 });
 
-socket.on("player1-move", data=>{
+socket.on("player1-move", (data: any[])=>{
   drawBoard(data[3]);
   let chooseNumber: number= parseInt(prmt("Choose Your Move"));
-  socket.emit("player1-move-index", [data[0],data[1],data[3],chooseNumber]);
+  socket.emit("player1-move-index", [data[0],data[1],data[2],chooseNumber]);
 });
 
-socket.on("player2-move", data=>{
+socket.on("player2-move", (data: any[])=>{
   drawBoard(data[3]);
   let chooseNumber: number = parseInt(prmt("Choose Your Move"));
-  socket.emit("player2-move-index",[data[0],data[1],data[0],chooseNumber]);
+  socket.emit("player2-move-index",[data[0],data[1],data[2],chooseNumber]);
 });
 
 

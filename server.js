@@ -8,16 +8,45 @@ function setGame(player1, player2) {
     var gamedata = { "Player1": player1, "Player2": player2, "Gamestate": [" ", " ", " ", " ", " ", " ", " ", " ", " "] };
     gamestate.push({ "id": gamestatelength, gamedata: gamedata });
 }
-function startgame(gameid, socket) {
+function player1move(gameid, pl1, pl2, gms) {
+    if (whosechance > 9) {
+        return;
+    }
+    io.to(pl1).emit("player1-move", [gameid, pl1, pl2, gms]);
+}
+;
+function player2move(gameid, pl1, pl2, gms) {
+    io.to(pl2).emit("player2-move", [gameid, pl1, pl2, gms]);
+}
+;
+function startgame(gameid) {
     var game = gamestate.filter((function (obj) { return obj.id == gameid; }));
     var pl1 = game[0].gamedata.Player1;
-    var pl = game[0].gamedata.Player2;
+    var pl2 = game[0].gamedata.Player2;
     var gms = game[0].gamedata.Gamestate;
     io.to(pl1).emit("player2-connect", "player 2 is connected");
+    player1move(gameid, pl1, pl2, gms);
 }
 var gamestate = [];
+var whosechance = 1;
 io.on("connection", function (socket) {
     socket.emit("choose-from-list", ["1. Create a new game", "2. Join as player 2 in existing game", "3. Be a spectator"]);
+    socket.on("player1-move-index", function (indexlist) {
+        gamestate[indexlist[0]].gamedata.Gamestate[indexlist[3] - 1] = "X";
+        var game = gamestate.filter((function (obj) { return obj.id == indexlist[0]; }));
+        var gms = game[0].gamedata.Gamestate;
+        whosechance = whosechance + 1;
+        io.to(indexlist[0]).emit("draw-board", gms);
+        player2move(indexlist[0], indexlist[1], indexlist[2], gms);
+    });
+    socket.on("player2-move-index", function (indexlist) {
+        gamestate[indexlist[0]].gamedata.Gamestate[indexlist[3] - 1] = "O";
+        var game = gamestate.filter((function (obj) { return obj.id == indexlist[0]; }));
+        var gms = game[0].gamedata.Gamestate;
+        whosechance = whosechance + 1;
+        io.to(indexlist[0]).emit("draw-board", gms);
+        player1move(indexlist[0], indexlist[1], indexlist[2], gms);
+    });
     socket.on("choose-number", function (data) {
         if (gamestate.length < 10 && data < 4) {
             if (data == 1) {
@@ -32,8 +61,8 @@ io.on("connection", function (socket) {
                 socket.on("gameid-choice", function (data) {
                     var objectindex = gamestate.findIndex((function (obj) { return obj.id == data; }));
                     gamestate[objectindex].gamedata.Player2 = socket.id;
-                    startgame(objectindex, socket);
                     socket.send("waiting for player1 to move");
+                    startgame(objectindex);
                 });
             }
             else if (data == 3) {
